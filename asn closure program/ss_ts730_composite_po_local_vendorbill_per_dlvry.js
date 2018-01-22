@@ -67,7 +67,6 @@ function schedProcessCompositePO() {
 				if (!isEmpty(soId)) {
 
 					var invId = transformToInvoice(soId, paramSNId, '', rec, invJob, rs);
-                  nlapiLogExecution('DEBUG','INV ID', invId);
 					rec.setFieldValue('custrecord_ts_asn_customer_inv_no', invId);
 					rec.setFieldValue('custrecord_asn_reset', 'F');
 
@@ -104,7 +103,6 @@ function schedProcessCompositePO() {
 
 				var invId = transformToInvoice(soId, paramSNId, billId, rec, invJob, rs);
 				rec.setFieldValue('custrecord_asn_vendor_bill_no', billId);
-              nlapiLogExecution('DEBUG','INV ID 2', invId);
 				rec.setFieldValue('custrecord_ts_asn_customer_inv_no', invId);
 				rec.setFieldValue('custrecord_asn_reset', 'F');
 

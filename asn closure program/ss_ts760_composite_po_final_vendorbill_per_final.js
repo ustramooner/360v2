@@ -398,7 +398,6 @@ function ts760_createCompositePrincipalOrder(objRS, asnId) {
 					mycomposite_item : compositeItem,
 					myitemQty : itemQuantity,
 					myfinalpoName : blanketPOName.replace(/^PO-/, ''),
-					myfinalpoId : blanketPOId, // added 21-Aug-2017
 					mylotnumber : custPONo
 				});
 				// End add by Herman
@@ -543,7 +542,6 @@ function ts760_createCompositePrincipalOrder(objRS, asnId) {
 			var asnCompositeItem = final_asn_item[yx].mycomposite_item;
 			var finalItemQty = final_asn_item[yx].myitemQty;
 			var finalpoName = final_asn_item[yx].myfinalpoName;
-			var finalpoId = final_asn_item[yx].myfinalpoId; // added 21-Aug-2017
 			var lotnumber = final_asn_item[yx].mylotnumber; // added 22-July-2016
 			// added by Herman
 
@@ -612,8 +610,8 @@ function ts760_createCompositePrincipalOrder(objRS, asnId) {
 				var filters = [];
 				filters.push(new nlobjSearchFilter('item', null, 'anyOf', itemId));
 				filters.push(new nlobjSearchFilter('inventorynumber', 'itemNumber', 'is', lotnumber));
-				// filters.push(new nlobjSearchFilter('custrecord_ts_bpo_delivery_to_po', 'custcol_ts_ap_bpo_no', 'is', finalpoName));
-				filters.push(new nlobjSearchFilter('custrecord_ts2_bpo_del_to_po', 'custcol_ts_ap_bpo_no', 'is', finalpoId)); // added by Herman 21-Aug-2017
+				// added by Herman 19-Jul-2016
+				filters.push(new nlobjSearchFilter('custrecord_ts_bpo_delivery_to_po', 'custcol_ts_ap_bpo_no', 'is', finalpoName));
 
 				var rs = nlapiSearchRecord('transaction', 'customsearch_asn_local_items', filters);
 
@@ -1149,7 +1147,7 @@ function ts760_createCompositeTradingOrder(objRS, asnId) {
 
 			// asn line item
 			rec.selectNewLineItem('item');
-			rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_asn_line', asnLineId);
+	//		rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_asn_line', asnLineId);
 			rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_rspo_no', rsASNLine[idx].getValue('custrecord_ts_rspo_po_no'));
 			rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_bpol', rsASNLine[idx].getValue('custrecord_ts_asn_bpol_no'));
 			rec.setCurrentLineItemValue('item', 'custcol_ts_bpo_line_in_so_n_inv', rsASNLine[idx].getValue('custrecord_ts_asn_bpo_line_no'));
@@ -1158,6 +1156,8 @@ function ts760_createCompositeTradingOrder(objRS, asnId) {
 			rec.setCurrentLineItemValue('item', 'quantity', rsASNLine[idx].getValue('custrecord_ts_asn_qty'));
 			rec.setCurrentLineItemValue('item', 'price', -1);
 			rec.setCurrentLineItemValue('item', 'rate', rsASNLine[idx].getValue('custrecord_ts_asn_item_rate'));
+
+            rec.setCurrentLineItemValue('item', 'location', LOC_THREESIXTY);
 			rec.commitLineItem('item');
 
 			if (!isEmpty(arrContainerMap[asnLineId]))

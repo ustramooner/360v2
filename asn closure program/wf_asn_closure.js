@@ -71,7 +71,6 @@ function wf_asn_closure() {
 		var rs = nlapiSearchRecord('customrecord_ts_asn', SS_ASN2PROCESS, filters);		
 		if (rs == null) {
 			dLog(LOG_NAME, 'No ASN to process. Exit script.');
-            nlapiSubmitField('customrecord_ts_asn_batch_control', batch_recid, 'custrecord_batch_message', 'No ASN to process');
 			return;
 		}
 		
@@ -80,7 +79,7 @@ function wf_asn_closure() {
 			dLog(LOG_NAME, 'Too Many ASN to process. Please check and adjust limit');
 		}
 		
-		nlapiSubmitField('customrecord_ts_asn_batch_control', batch_recid, ['custrecord_asn_count','custrecord_batch_status','custrecord_batch_message'], [rs.length,'3','']);
+		nlapiSubmitField('customrecord_ts_asn_batch_control', batch_recid, 'custrecord_asn_count', rs.length);
 			
 		
 		for (var i = 0; i < rs.length; i++) {
@@ -113,13 +112,8 @@ function wf_asn_closure() {
 		var usage = nlapiGetContext().getRemainingUsage();
 		nlapiLogExecution('DEBUG', 'Remaining Usage ', usage);
 	}
-	executeRPOCompleted();
+	
 	dLog(LOG_NAME, '>>>FINISH<<<');
-}
-
-function executeRPOCompleted(){
-	var status = nlapiScheduleScript('customscript_ts2_rlpo_completed','customdeploy_ts2_rlpo_completed');	
-  dLog(LOG_NAME,'Running update to release po. Status: ' + status );
 }
 
 function process_specific_asn(recId) {

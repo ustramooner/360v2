@@ -12,7 +12,6 @@ var arrItemId = [];
 
 var arrBPOLineInfo = [];
 var arrBPOMap = [];
-var arrBPOMap_allow = [];
 var arrBPOInfo = [];
 var arrRSPOMapInfo = [];
 var arrItemLotMap = [];
@@ -91,7 +90,6 @@ function schedProcessSinglePO() {
 
 	arrBPOLineInfo = getBlanketPOLineInfo(arrBPOLineId);
 	arrBPOMap = getAddlCharges(arrBPOLineId);
-	arrBPOMap_allow = getAllowance(arrBPOLineId);
 	arrBPOInfo = getBlanketPOInfo(arrBPOId);
 	arrRSPOMapInfo = getPOIncoterm(arrRSPOId); 
 	nlapiLogExecution("debug", "Title Transfer", "Title Transfer is " + arrRSPOMapInfo);
@@ -216,7 +214,6 @@ function createAddSOItem(objRS, asnId) {
 			dLog('createAddSOItem', 'Customer Item No = ' + customerItemNo);
 			dLog('createAddSOItem', 'Blanket PO line Id = ' + blanketPOLine);
 			dLog('createAddSOItem', 'Blaket PO Line charge Info = ' + arrBPOMap[blanketPOLine]);
-			dLog('createAddSOItem', 'Blaket PO Line allowance Info = ' + arrBPOMap_allow[blanketPOLine]);
 
 			// agency
 			var amtAgency = getFloatVal(itemRate) * getIntVal(itemQty);
@@ -274,19 +271,6 @@ function createAddSOItem(objRS, asnId) {
 		             oh_number: oh_number
 		         };
 				subTotal = setAddlCharge(rec, arrBPOMap[blanketPOLine], itemQty, arrBPOLineInfo[blanketPOLine], subTotal, '');
-			}
-			
-			if (!isEmpty(arrBPOMap_allow[blanketPOLine])) {
-		         // 3rd feb 2017 ref Dennis email 810 import format
-		         arrBPOMap_allow[blanketPOLine] = {
-		             allowance_item : arrBPOMap_allow[blanketPOLine].allowance_item,
-		             allowance_item_unit : arrBPOMap_allow[blanketPOLine].allowance_item_unit,
-		             allowancepercent : arrBPOMap_allow[blanketPOLine].allowancepercent,
-		             allowanceunit : arrBPOMap_allow[blanketPOLine].allowanceunit,
-		             grossmargin : arrBPOMap_allow[blanketPOLine].grossmargin,
-		             oh_number: oh_number
-		         };
-				subTotal = setAllowance(rec, arrBPOMap_allow[blanketPOLine], itemQty, arrBPOLineInfo[blanketPOLine], subTotal, '');
 			}
 
 			// gross margin
@@ -403,7 +387,6 @@ function createPrincipalOrder(objRS, asnId) {
 			dLog('createAddSOItem', 'Customer Item No = ' + customerItemNo);
 			dLog('createPrincipalOrder', 'Blanket PO line Id = ' + blanketPOLine);
 			dLog('createPrincipalOrder', 'Blaket PO Line charge Info = ' + arrBPOMap[blanketPOLine]);
-			dLog('createPrincipalOrder', 'Blaket PO Line allowance Info = ' + arrBPOMap_allow[blanketPOLine]);
 
 			// asn line item
          	if(i == 0)
@@ -477,25 +460,6 @@ function createPrincipalOrder(objRS, asnId) {
 		         };
 				subTotal = setAddlCharge(rec, arrBPOMap[blanketPOLine], itemQty, arrBPOLineInfo[blanketPOLine], subTotal, '');
 			}
-			
-			if (!isEmpty(arrBPOMap_allow[blanketPOLine])) {
-		         // 3rd feb 2017 ref Dennis email 810 import format
-		         arrBPOMap_allow[blanketPOLine] = {
-		             allowance_item : arrBPOMap_allow[blanketPOLine].allowance_item,
-		             allowance_item_unit : arrBPOMap_allow[blanketPOLine].allowance_item_unit,
-		             allowancepercent : arrBPOMap_allow[blanketPOLine].allowancepercent,
-		             allowanceunit : arrBPOMap_allow[blanketPOLine].allowanceunit,
-		             grossmargin : arrBPOMap_allow[blanketPOLine].grossmargin,
-		             oh_number: oh_number,
-                 	 itemname : itemname,
-		          	 itemclassid : itemclassid,
-                  	 asnLine : asnLine,
-		             blanketPOLine : blanketPOLine,
-		             blanketPO : blanketPO
-		         };
-				subTotal = setAllowance(rec, arrBPOMap_allow[blanketPOLine], itemQty, arrBPOLineInfo[blanketPOLine], subTotal, '');
-			}
-			
 
 			// gross margin
 			if (!isEmpty(arrBPOLineInfo[blanketPOLine].grossmargin)) {
@@ -579,7 +543,6 @@ function createTradingorder(objRS, asnId) {
 			dLog('createAddSOItem', 'Customer Item No = ' + customerItemNo);
 			dLog('createTradingorder', 'Blanket PO line Id = ' + blanketPOLine);
 			dLog('createTradingorder', 'Blaket PO Line charge Info = ' + arrBPOMap[blanketPOLine]);
-			dLog('createTradingorder', 'Blaket PO Line allowance Info = ' + arrBPOMap_allow[blanketPOLine]);
 
 			// asn line item
           	if(i == 0)
@@ -661,25 +624,6 @@ function createTradingorder(objRS, asnId) {
 	             };
 				subTotal = setAddlCharge(rec, arrBPOMap[blanketPOLine], itemQty, arrBPOLineInfo[blanketPOLine], subTotal, '');
 			}
-			
-			if (!isEmpty(arrBPOMap_allow[blanketPOLine])) {
-	             // 3rd feb 2017 ref Dennis email 810 import format
-	             arrBPOMap_allow[blanketPOLine] = {
-	                 allowance_item : arrBPOMap_allow[blanketPOLine].allowance_item,
-	                 allowance_item_unit : arrBPOMap_allow[blanketPOLine].allowance_item_unit,
-	                 allowancepercent : arrBPOMap_allow[blanketPOLine].allowancepercent,
-	                 allowanceunit : arrBPOMap_allow[blanketPOLine].allowanceunit,
-	                 grossmargin : arrBPOMap_allow[blanketPOLine].grossmargin,
-	                 oh_number: oh_number,
-                  	 itemclassid : itemclassid,
-	                 itemname : itemname,
-                  	 asnLine : asnLine,
-	                 blanketPOLine : blanketPOLine,
-	                 blanketPO : blanketPO
-	             };
-				subTotal = setAllowance(rec, arrBPOMap_allow[blanketPOLine], itemQty, arrBPOLineInfo[blanketPOLine], subTotal, '');
-			}
-			
 		}
 
 		var id = nlapiSubmitRecord(rec, true, true);

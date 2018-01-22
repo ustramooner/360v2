@@ -338,7 +338,8 @@ function ts740_createCompositeAgencyOrder(objRS, asnId) {
 				rec.selectNewLineItem('item');
 				rec.setCurrentLineItemValue('item', 'item', ITEM_GROSSMARGIN);
 				rec.setCurrentLineItemValue('item', 'rate', arrBPOLineInfo[blanketPOLine].grossmargin);
-					if (!isEmpty(arrBPOLineInfo[blanketPOLine])) {
+
+				if (!isEmpty(arrBPOLineInfo[blanketPOLine])) {
 
 					if (!isEmpty(arrBPOLineInfo[blanketPOLine].adlchrgepayto))
 						rec.setCurrentLineItemValue('item', 'custcol_ts_inv_add_charge_pay_to', arrBPOLineInfo[blanketPOLine].adlchrgepayto);
@@ -473,20 +474,19 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 			var asnLine = objRS[i].getValue('internalid', 'CUSTRECORD_TS_CREATED_FM_ASN');
 			var itemRate = objRS[i].getValue('custrecord_ts_asn_item_rate', 'CUSTRECORD_TS_CREATED_FM_ASN');
 			var item = objRS[i].getValue('custrecord_ts_asn_item', 'CUSTRECORD_TS_CREATED_FM_ASN');
-			var itemname = nlapiLookupField('item', item, 'itemid');
-			//dLog('ts740_createCompositePrincipalOrder', 'itemname yyyy= ' + itemname);
+          	var itemname = nlapiLookupField('item', item, 'itemid');
 			var customerItemNo = nlapiLookupField('item', item, 'custitem_ts_item_customer_item_no');
 			if (!isEmpty(msRelItemNo))
-			customerItemNo = msRelItemNo;	
+				customerItemNo = msRelItemNo;	
 			var itemQty = objRS[i].getValue('custrecord_ts_asn_qty', 'CUSTRECORD_TS_CREATED_FM_ASN');
 			var itemUnit = objRS[i].getValue('custrecord_ts_asn_unit', 'CUSTRECORD_TS_CREATED_FM_ASN');
-			var item_desc = arrBPOLineInfo[blanketPOLine].itemdesc ;
-			//dLog('ts740_createCompositePrincipalOrder', 'item_desc yyyy= ' + item_desc);
+          	var item_desc = arrBPOLineInfo[blanketPOLine].itemdesc ;
+			dLog('ts740_createCompositePrincipalOrder', 'item_desc yyyy= ' + item_desc);
 			var subTotal = 0;
 			var asnAmt = 0;
-			
-			//dLog('ts740_createCompositePrincipalOrder', 'Blanket PO line Id = ' + blanketPOLine);
-			//dLog('ts740_createCompositePrincipalOrder', 'Blaket PO Line charge Info = ' + arrBPOMap[blanketPOLine]);
+
+			dLog('ts740_createCompositePrincipalOrder', 'Blanket PO line Id = ' + blanketPOLine);
+			dLog('ts740_createCompositePrincipalOrder', 'Blaket PO Line charge Info = ' + arrBPOMap[blanketPOLine]);
 
 			// asn line item
 			rec.selectNewLineItem('item');
@@ -504,8 +504,9 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 			rec.setCurrentLineItemValue('item', 'quantity', itemQty);
 			rec.setCurrentLineItemValue('item', 'price', -1);
 			rec.setCurrentLineItemValue('item', 'rate', itemRate);
-			rec.setCurrentLineItemValue('item', 'custcolmemo', itemname);
+          	rec.setCurrentLineItemValue('item', 'custcolmemo', itemname);
 			rec.setCurrentLineItemValue('item', 'description', item_desc);
+			
 			// added by HY 8-Sept-2016
 			if (!isEmpty(arrContainerMap[asnLine]))
 				rec.setCurrentLineItemValue('item', 'custcol_ts_inv_container_no', arrContainerMap[asnLine].toString());
@@ -560,9 +561,9 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 				var addlChargeAmt = arrBPOMap[blanketPOLine].adlchrgeunit;
 				var chargeItem = arrBPOMap[blanketPOLine].charge_item;
 
-				//dLog('ts740_createCompositePrincipalOrder', 'addlChargeRate = ' + addlChargeRate);
-				//dLog('ts740_createCompositePrincipalOrder', 'addlChargeAmt = ' + addlChargeAmt);
-				//dLog('ts740_createCompositePrincipalOrder', 'chargeItem = ' + chargeItem);
+				dLog('ts740_createCompositePrincipalOrder', 'addlChargeRate = ' + addlChargeRate);
+				dLog('ts740_createCompositePrincipalOrder', 'addlChargeAmt = ' + addlChargeAmt);
+				dLog('ts740_createCompositePrincipalOrder', 'chargeItem = ' + chargeItem);
 
 				if (!isEmpty(chargeItem)) {
 
@@ -574,13 +575,13 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 						dLog('ts740_createCompositePrincipalOrder', 'setting charge rate |  chargeAmt = ' + chargeAmt);
 						rec.setCurrentLineItemValue('item', 'rate', addlChargeRate);
 						rec.setCurrentLineItemValue('item', 'amount', chargeAmt);
+                        rec.setCurrentLineItemValue('item', 'description', item_desc);
 					}
 
 					if (!isEmpty(addlChargeAmt)) {
 
 						var chargeAmt = getFloatVal(addlChargeAmt) * getIntVal(itemQty);
-						//dLog('ts740_createCompositePrincipalOrder', 'setting charge amount | chargeAmt = ' + chargeAmt);
-						
+						dLog('ts740_createCompositePrincipalOrder', 'setting charge amount | chargeAmt = ' + chargeAmt);
 						rec.setCurrentLineItemValue('item', 'description', 'Qty : ' + itemQty + ' | Rate : ' + addlChargeAmt);
 						rec.setCurrentLineItemValue('item', 'price', -1);
 						rec.setCurrentLineItemValue('item', 'rate', chargeAmt);
@@ -605,13 +606,7 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 						dLog('ts740_createCompositePrincipalOrder', 'Composite Name is ' + componame);
 						rec.setCurrentLineItemValue('item', 'custcol_ts_inv_composite_name', componame);
 					}
-					rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_asn_line', '');
-					rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_rspo_no', '');// RELEASE SHIPMENT PO
-					rec.setCurrentLineItemValue('item', 'custcol_ts_customer_po_no_in_so_n_inv', '' ); //  CUSTOMER PO NO.
-					rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_bpol', blanketPOLine);//BLANKET PO LINE
-					rec.setCurrentLineItemValue('item', 'custcol_ts_bpo_line_in_so_n_inv', blanketPO);// BLANKET PO #
-					rec.setCurrentLineItemValue('item', 'description', item_desc);
-					rec.setCurrentLineItemValue('item', 'custcolmemo', itemname);
+					
 					rec.setCurrentLineItemValue('item', 'location', LOC_THREESIXTY);
 					rec.setCurrentLineItemValue('item', 'custcol_ts_oh_number', oh_number); // //3rd feb 2017 ref Dennis email 810 import format
 					rec.commitLineItem('item');
@@ -631,7 +626,7 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 
 			// gross margin
 			if (!isEmpty(arrBPOLineInfo[blanketPOLine].grossmargin)) {
-				//Added by Karthika for issue SC-1562
+              	//Added by Karthika for issue SC-1562
 				var item_desc = arrBPOLineInfo[blanketPOLine].itemdesc ;
 				var itemname = nlapiLookupField('item', item, 'itemid');
 				//dLog('ts740_createCompositePrincipalOrder', 'in grossmargin mmm..' + item_desc);
@@ -640,7 +635,7 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 				rec.setCurrentLineItemValue('item', 'rate', arrBPOLineInfo[blanketPOLine].grossmargin);
 				rec.setCurrentLineItemValue('item', 'custcolmemo', itemname);
 				rec.setCurrentLineItemValue('item', 'description', item_desc);
-				//Added by karthika to set the blanket po line and banket po line - Second line item
+              	//Added by karthika to set the blanket po line and banket po line - Second line item
 				rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_asn_line', '');
 				rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_rspo_no', '');
 				rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_bpol', blanketPOLine);
@@ -680,7 +675,6 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 		// >>> START : Other charge line
 		var rsASNLine = getOtherCharges(blanketPOName.split('-')[1], custPONo);
 		var arrASNLineId = [];
-		var itemname = nlapiLookupField('item', item, 'itemid');
 		for (var i = 0; rsASNLine != null && i < rsASNLine.length; i++) {
 
 			arrASNLineId.push(rsASNLinep[i].getId());
@@ -701,7 +695,6 @@ function ts740_createCompositePrincipalOrder(objRS, asnId) {
 			rec.setCurrentLineItemValue('item', 'quantity', rsASNLine[i].getValue('custrecord_ts_asn_qty'));
 			rec.setCurrentLineItemValue('item', 'price', -1);
 			rec.setCurrentLineItemValue('item', 'rate', rsASNLine[i].getValue('custrecord_ts_asn_item_rate'));
-			rec.setCurrentLineItemValue('item', 'custcolmemo', itemname);
 			rec.setCurrentLineItemValue('item', 'location', LOC_THREESIXTY);
 			rec.commitLineItem('item');
 
@@ -761,10 +754,13 @@ function ts740_createCompositeTradingOrder(objRS, asnId) {
 
 			if (!isEmpty(blanketPOId))
 				arrBPOId.push(blanketPOId);
+
 			if (!isEmpty(blanketPOLineId))
 				arrBPOLineId.push(blanketPOLineId);
+
 			if (!isEmpty(releaseShipmentPO))
 				arrRSPOId.push(releaseShipmentPO);
+
 			if (!isEmpty(item))
 				arrItemId.push(item);
 		}
@@ -814,7 +810,9 @@ function ts740_createCompositeTradingOrder(objRS, asnId) {
 			if (!isEmpty(arrBPOLineInfo[blanketPOLine])) {
 
 				dLog('ts740_createCompositeTradingOrder', 'Blanket Info = ' + JSON.stringify(arrBPOLineInfo[blanketPOLine]));
+
 				rec.setCurrentLineItemValue('item', 'rate', setValue(arrBPOLineInfo[blanketPOLine].linerate));
+
 				if (!isEmpty(arrBPOLineInfo[blanketPOLine].adlchrgepayto))
 					rec.setCurrentLineItemValue('item', 'custcol_ts_inv_add_charge_pay_to', arrBPOLineInfo[blanketPOLine].adlchrgepayto);
 				if (!isEmpty(arrBPOLineInfo[blanketPOLine].adlchrgepercent))
@@ -828,9 +826,12 @@ function ts740_createCompositeTradingOrder(objRS, asnId) {
 			}
 
 			if (arrItemLotMap[itemId] == 'T') {
+
 				dLog('ts740_createCompositeTradingOrder', 'setting sublist @ line ' + i + ' | Serial No. : ' + custPONo + ' | Qty : ' + itemQty);
+
 				var serialLotNum = custPONo + '(' + itemQty + ')';
 				dLog('ts740_createCompositeTradingOrder', 'serialLotNum = ' + serialLotNum);
+
 				rec.setCurrentLineItemValue('item', 'location', LOC_THREESIXTY);
 				rec.setCurrentLineItemValue('item', 'serialnumbers', serialLotNum);
 			}
@@ -844,17 +845,22 @@ function ts740_createCompositeTradingOrder(objRS, asnId) {
 			}
 			
 			rec.commitLineItem('item');
+
 			dLog('ts740_createCompositeTradingOrder', 'Set asn line item..');
+
 			subTotal += getFloatVal(asnAmt);
 
 			if (!isEmpty(arrBPOMap[blanketPOLine])) {
+
 				// additional charge
 				var addlChargeRate = arrBPOMap[blanketPOLine].adlchrgepercent;
 				var addlChargeAmt = arrBPOMap[blanketPOLine].adlchrgeunit;
 				var chargeItem = arrBPOMap[blanketPOLine].charge_item;
+
 				dLog('ts740_createCompositeTradingOrder', 'addlChargeRate = ' + addlChargeRate);
 				dLog('ts740_createCompositeTradingOrder', 'addlChargeAmt = ' + addlChargeAmt);
 				dLog('ts740_createCompositeTradingOrder', 'chargeItem = ' + chargeItem);
+
 				if (!isEmpty(chargeItem)) {
 
 					rec.selectNewLineItem('item');
@@ -889,13 +895,16 @@ function ts740_createCompositeTradingOrder(objRS, asnId) {
 						if (!isEmpty(arrBPOLineInfo[blanketPOLine].htscode))
 							rec.setCurrentLineItemValue('item', 'custcol_ts_inv_hts_code', arrBPOLineInfo[blanketPOLine].htscode);
 					}
+
 					if (!isEmpty(compositeItem)){
 						rec.setCurrentLineItemValue('item', 'custcol_ts_inv_composite_item', compositeItem);
 						var componame = nlapiLookupField('item',compositeItem,'displayname');
 						dLog('ts740_createCompositeTradingOrder', 'Composite Name is ' + componame);
 						rec.setCurrentLineItemValue('item', 'custcol_ts_inv_composite_name', componame);
 					}
+
 					rec.commitLineItem('item');
+
 					dLog('ts740_createCompositeTradingOrder', 'Set Addl Charge line..');
 
 					// subtotal
@@ -920,8 +929,10 @@ function ts740_createCompositeTradingOrder(objRS, asnId) {
 		} else {
 			stErrMsg = 'SO Creation Error: ' + e.toString();
 		}
+
 		dLog('SO Creation Error', stErrMsg);
 		nlapiSubmitField('customrecord_ts_asn', asnId, [ 'custrecord_asn_status', 'custrecord_asn_reset' ], [ ASN_STAT_ERROR, 'F' ]);
+
 		return null;
 	}
 }

@@ -22,7 +22,6 @@ var LOC_THREESIXTY = 4497;
 
 var SAVED_SEARCH_ASN = 'customsearch_asn_search'; // TS SCRIPTUSE-ASN Search-DoNotEditDelete
 var SAVED_SEARCH_CHECK_ADDL_CHARGES = 'customsearch_check_adl_charges';
-var SAVED_SEARCH_CHECK_ALLOWANCES = 'customsearch_check_allowance';
 var SAVED_SEARCH_PO_LINES = 'customsearch_asn_po_lines';
 
 var FORM_TS_PRODUCT_INVOICE = 160;
@@ -79,16 +78,6 @@ function initSORec(objRS) {
 	return rec;
 }
 
-function clearPOReceipt(poId){
-	var result = nlapiSearchRecord('itemreceipt',null,[new nlobjSearchFilter('createdfrom',null,'is', poId),new nlobjSearchFilter('mainline',null,'is','T')]) || [];
-	dLog('Receipt Count',result.length);
-  if(result.length > 0){
-		var itemReceiptId = result[0].id;
-      nlapiLogExecution('DEBUG','Deleting Item Receipt', itemReceiptId);
-		nlapiDeleteRecord('itemreceipt', itemReceiptId);
-	}
-}
-
 /**
  * 
  * @param arrPO
@@ -102,13 +91,11 @@ function receiptPO(arrPO, asnId, isZeroAmt) {
 	for (ip in arrPO) {
 
 		try {
-          
-          clearPOReceipt(arrPO[ip]);
 			// Perform PO Receipt against PO
 			var rec = nlapiTransformRecord('purchaseorder', arrPO[ip], 'itemreceipt', {
 				recordmode : 'dynamic'
 			});
-dLog('Checking PO', arrPO[ip]);
+
 			rec.setFieldValue('custbody_ts_rspo_related_asn', asnId);
 
 			// Set Rate (unit price of PO receipt record) to zero and use lot
@@ -190,16 +177,8 @@ function closePO(arrPO) {
 
 		try {
 
-			var rec = nlapiLoadRecord('purchaseorder', arrPO[ip], {recordmode : 'dynamic'});
-          
-          var qty = parseFloat(rec.getFieldValue('custbody_ts2_rspol_qty')) || 0;
-			var rate = parseFloat(rec.getFieldValue('custbody_ts2_rspol_unit_price')) || 0;
-
-			rec.setFieldValue('custbody_ts2_rspol_qty', qty);
-			rec.setFieldValue('custbody_ts2_rspol_amt', qty * rate);
-          
-          
-          var lineCtr = rec.getLineItemCount('item');
+			var rec = nlapiLoadRecord('purchaseorder', arrPO[ip]);
+			var lineCtr = rec.getLineItemCount('item');
 
 			for (var i = 1; i <= lineCtr; i++) {
 
@@ -265,7 +244,8 @@ function createAdjustment(cust, arrIR, asnId) {
 			dLog('createAdjustment', 'arrItemId length = ' + arrItemId.length);
 			if(arrItemId.length == 0)
 				{
-				return true;
+				//return true;
+                    continue;
 				}
 			var arrItemLotMap = (arrItemId.length > 0) ? checkItemLot(arrItemId) : [];
 
@@ -301,10 +281,11 @@ function createAdjustment(cust, arrIR, asnId) {
 
 		if (!isEmpty(SCRIPT_TEST_NOTES))
 			recAdj.setFieldValue('memo', SCRIPT_TEST_NOTES);
-		//var linecount = recAdj.getLineItemCount('item');
-		//dLog('createAdjustment', 'recAdj before submit = ' + linecount);
-		//if(linecount < 1 )
-			//return true;
+		var linecount = recAdj.getLineItemCount('item');
+		if(linecount < 0 ){
+          		dLog('createAdjustment', 'recAdj line count before submit = ' + linecount);
+          		return true;
+        }
 		var id = nlapiSubmitRecord(recAdj, true, true);
 
 		dAudit('createAdjustment', 'Created Inv. Adj | id = ' + id);
@@ -561,29 +542,6 @@ function getAddlCharges(arrIds) {
 
 	return arrItemMap;
 }
-
-
-function getAllowance(arrIds) {
-
-	var arrItemMap = [];
-	var filters = [ new nlobjSearchFilter('internalid', null, 'anyOf', arrIds) ];
-	var rs = nlapiSearchRecord('customrecord_ts_blanket_po_line', SAVED_SEARCH_CHECK_ALLOWANCES, filters);
-
-	for (var i = 0; rs != null && i < rs.length; i++) {
-
-		arrItemMap[rs[i].getId()] = {
-			allowance_item : rs[i].getValue('custentity_ts2_ven_allo_item_percent', 'CUSTRECORD_TS2_BPOL_ALL_PAY_TO'),
-			allowance_item_unit : rs[i].getValue('custentity_ts2_ven_allo_item_unit', 'CUSTRECORD_TS2_BPOL_ALL_PAY_TO'),
-			allowancepercent : rs[i].getValue('custrecord_ts2_bpol_all_percentage'),
-			allowanceunit : rs[i].getValue('custrecord_ts2_bpol_all_unit'),
-			grossmargin : rs[i].getValue('custrecord_ts_bpol_gross_margin_rate'),
-		    oh_number: '' // - 3rd feb 2017 ref Dennis email 810 import format
-		};
-	}
-
-	return arrItemMap;
-}
-
 
 function getBlanketPOLineInfo(arrIds) {
 
@@ -922,7 +880,7 @@ function getPostingDate() {
 	arrMonth[10] = 'Nov';
 	arrMonth[11] = 'Dec';
 
-	var today = new Date();
+	var today = getTSHKCurrentDateTime();
 
 	return arrMonth[today.getMonth()] + ' ' + today.getFullYear();
 }
@@ -1102,95 +1060,6 @@ function setAddlCharge(rec, objBPOMap, asnLineQty, objBPOLineInfo, subTotal, com
 
 	return subTotal;
 }
-
-
-function setAllowance(rec, objBPOMap, asnLineQty, objBPOLineInfo, subTotal, compoItem) {
-
-	// additional charge
-	var allowanceRate = objBPOMap.allowancepercent;
-	var allowanceAmt = objBPOMap.allowanceunit;
-	var allowanceItem = (isEmpty(objBPOMap.allowance_item)) ? objBPOMap.allowance_item_unit : objBPOMap.allowance_item;
-	var oh_number = objBPOMap.oh_number; //3rd feb 2017 ref Dennis email 810 import format
-	//Added by Karthika for issue SC-1562
-	var item_desc = objBPOLineInfo.itemdesc ; 
-    var item_name = objBPOMap.itemname ; 
-    var item_classid = objBPOMap.itemclassid;
-  	var asnLine = objBPOMap.asnLine;
-    var blanketPOLine = objBPOMap.blanketPOLine;
-    var blanketPO  = objBPOMap.blanketPO;
-	dLog('setAllowamce', 'allowanceRate = ' + allowanceRate);
-	dLog('setAllowamce', 'allowanceAmt = ' + allowanceAmt);
-	dLog('setAllowamce', 'allowItem = ' + allowanceItem);
-	dLog('setAllowamce', 'asnLine KKKK = ' + asnLine); 
-	dLog('setAllowamce', 'blanketPOLine KKKK = ' + blanketPOLine); 
-	dLog('setAllowamce', 'blanketPO KKKK = ' + blanketPO); 
-	if (!isEmpty(allowanceItem)) {
-
-		rec.selectNewLineItem('item');
-      	rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_asn_line', '');
-		//Commented for blank
-		rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_rspo_no', '' ); // RELEASE SHIPMENT PO
-		rec.setCurrentLineItemValue('item', 'custcol_ts_ap_ar_bpol', blanketPOLine ); //BLANKET PO LINE
-		rec.setCurrentLineItemValue('item', 'custcol_ts_bpo_line_in_so_n_inv', blanketPO  );  // BLANKET PO #
-		rec.setCurrentLineItemValue('item', 'custcol_ts_customer_po_no_in_so_n_inv', '' );   //  CUSTOMER PO NO.
-		//Ends here
-		rec.setCurrentLineItemValue('item', 'item', allowanceItem);
-		rec.setCurrentLineItemValue('item', 'quantity', asnLineQty);
-		rec.setCurrentLineItemValue('item', 'location', LOC_THREESIXTY);
-	    rec.setCurrentLineItemValue('item', 'custcol_ts_oh_number', oh_number); //3rd feb 2017 ref Dennis email 810 import format
-     	rec.setCurrentLineItemValue('item', 'description', item_desc);
-		rec.setCurrentLineItemValue('item', 'custcolmemo', item_name);
-		rec.setCurrentLineItemValue('item', 'class', item_classid);
-
-		if (!isEmpty(allowanceRate)) {
-			// var chargeAmt = getFloatVal(addlChargeRate) *
-			// getIntVal(itemQty);
-			// dLog('createTradingorder', 'setting charge rate | chargeAmt = ' +
-			// chargeAmt);
-			rec.setCurrentLineItemValue('item', 'price', -1);
-			rec.setCurrentLineItemValue('item', 'rate', parseInt(allowanceRate)*-1);
-			if (!isEmpty(allowanceAmt))
-				rec.setCurrentLineItemValue('item', 'amount', allowanceAmt);
-		}
-
-		if (!isEmpty(allowanceAmt)) {
-
-			// var chargeAmt = getFloatVal(addlChargeAmt) *
-			// getIntVal(itemQty);
-			// dLog('createTradingorder', 'setting charge amount | chargeAmt = '
-			// + chargeAmt);
-			// rec.setCurrentLineItemValue('item', 'description', 'Qty : ' +
-			// itemQty + ' | Rate : ' + addlChargeAmt);
-			rec.setCurrentLineItemValue('item', 'price', -1);
-			rec.setCurrentLineItemValue('item', 'rate', -1*parseInt(allowanceAmt));
-		}
-
-		if (!isEmpty(objBPOLineInfo))
-			setTransCols(rec, objBPOLineInfo);
-
-		if (!isEmpty(compoItem)) {
-			rec.setCurrentLineItemValue('item', 'custcol_ts_inv_composite_item', compoItem);
-			var componame = nlapiLookupField('item', compoItem, 'displayname');
-			dLog('setAllowance', 'Composite Name is ' + componame);
-			rec.setCurrentLineItemValue('item', 'custcol_ts_inv_composite_name', componame);
-		}
-
-		rec.commitLineItem('item');
-
-		dLog('setAllowance', 'Set Allowance line..');
-
-		// subtotal
-		var currAmt = rec.getCurrentLineItemValue('item', 'amount');
-		subTotal += getFloatVal(currAmt);
-
-		setSubTotal(rec, subTotal);
-	}
-
-	return subTotal;
-}
-
-
-
 
 /**
  * Utility function to trim white space
