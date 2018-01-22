@@ -20,7 +20,7 @@ function interfaceTest() {
 			xmlData = nlapiGetFieldValue('custrecord_test_data');
 		}
 
-		var url = 'https://forms.na2.netsuite.com/app/site/hosting/scriptlet.nl?script=204&deploy=1&compid=ACCT33375&h=64ecd001defeefe19245';
+		var url = 'https://forms.sandbox.netsuite.com/app/site/hosting/scriptlet.nl?script=204&deploy=1&compid=ACCT33375_SB2&h=43f95899153a0cbead17';
 		var headers = new Array();
 		headers['Content-Type'] = 'application/xml;charset=UTF-8';
 		headers['Accept'] = 'application/soap+xml,application/json, application/dime, multipart/related, text/*';

@@ -27,9 +27,9 @@ function interfaceReq(request, response) {
 
 // Replicate code should be removed before migrating script to production
 // Replicate data to ADE
-//var url = 'https://forms.sandbox.netsuite.com/app/site/hosting/scriptlet.nl?script=208&deploy=1&compid=ACCT33375_SB2&h=3b67d541520a98d636c5';
-//var resp = nlapiRequestURL(url, data);
-//nlapiLogExecution('DEBUG', 'Replication Response', resp.getBody());
+var url = 'https://forms.sandbox.netsuite.com/app/site/hosting/scriptlet.nl?script=208&deploy=1&compid=ACCT33375_SB2&h=3b67d541520a98d636c5';
+var resp = nlapiRequestURL(url, data);
+nlapiLogExecution('DEBUG', 'Replication Response', resp.getBody());
 
 		var params = new Object();
 		params['custscript_xml_doc'] = fileId;
