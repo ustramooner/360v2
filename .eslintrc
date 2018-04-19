@@ -1,0 +1,18 @@
+{
+  // http://eslint.org/docs/rules/
+
+  "plugins": [
+    "eslint-plugin-netsuite"
+    // e.g. "react" (must run `npm install eslint-plugin-react` first)
+  ],
+
+  "rules": {
+    ////////// Possible Errors //////////
+
+    "netsuite/module-defintion-parameters": 2,
+    "netsuite/netsuite-governor-scheduledscript": 2,
+    "netsuite/netsuite-http-calls-require-error-handlings": 2,
+    "netsuite/netsuite-nscripttype-valid": 2,
+    "netsuite/netsuite-request-header-check": 2
+  }
+}
